@@ -1,4 +1,4 @@
-# webwyy
+# app
 
 ## Project setup
 ```
