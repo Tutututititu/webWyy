@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import axios from 'axios'
 import{ Message } from 'element-ui'
 import router from '@/router/index.js'
@@ -39,6 +38,7 @@ export const postRequest = (url,params) => {
         data:params
     })
 }
+
 
 // axios.interceptors.response.use( res => {
 //     console.log(res);

@@ -128,7 +128,8 @@ export default {
     //   }
 
     // },
-  },
+  }
+
 };
 </script>
 
