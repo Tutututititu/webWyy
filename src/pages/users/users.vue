@@ -96,6 +96,7 @@
                 type="danger"
                 icon="el-icon-delete"
                 size="mini"
+                @click="deleteUser(scope.row)"
               ></el-button
             ></el-tooltip>
           </template>
@@ -249,7 +250,7 @@
         <el-form-item label="修改电话" prop="modifyPhone">
           <el-input
             v-model="modifyList.modifyPhone"
-            placeholder="请添加用户名"
+            placeholder="请添加电话"
             clearable
           ></el-input>
         </el-form-item>
@@ -325,7 +326,7 @@ export default {
       // 添加用户
       addNewUser: false,
       //修改数据dialog
-      modifyButton:false,
+      modifyButton: false,
       //添加用户数据
       addNewUserList: {
         userId: "",
@@ -342,12 +343,14 @@ export default {
         mobile: "",
       },
       //修改数据
-      modifyList:{
-        modifyUser:'',
-        modifyEamil:'',
-        modifyPhone:''
+      modifyList: {
+        modifyid: "",
+        modifyUser: "",
+        modifyEamil: "",
+        modifyPhone: "",
       },
-
+      // row数据
+      row: [],
       //添加用户数据验证
       addNewUserRules: {
         userId: [
@@ -358,6 +361,9 @@ export default {
         userPswdTwo: [{ validator: validatePass2, trigger: "blur" }],
         userPhone: [{ validator: validatePhone, trigger: "blur" }],
         userEmail: [{ validator: vaildataEmail, trigger: "blur" }],
+        // 修改数据验证
+        modifyEamil: [{ validator: vaildataEmail, trigger: "blur" }],
+        modifyPhone: [{ validator: validatePhone, trigger: "blur" }],
       },
       // 当前日期
       currentDate: "",
@@ -387,7 +393,7 @@ export default {
         },
       ],
       stateSelect: "",
-    }
+    };
   },
   methods: {
     //用户列表数据
@@ -427,7 +433,7 @@ export default {
     },
     //添加用户
     addNewUserT() {
-        (this.uploadAddUser.username = this.addNewUserList.userId),
+      (this.uploadAddUser.username = this.addNewUserList.userId),
         (this.uploadAddUser.password = this.addNewUserList.userPswdTwo),
         (this.uploadAddUser.email = this.addNewUserList.userEmail),
         (this.uploadAddUser.mobile = this.addNewUserList.userPhone);
@@ -457,23 +463,72 @@ export default {
     },
     //修改数据取消按钮
     modifyF() {
-      this.modifyButton = false
+      this.modifyButton = false;
     },
     // 修改数据确定按钮
     modifyT() {
-      this.modifyButton = false
-      
+      console.log(this.row);
+      this.$refs.formRef.validate(async (valid) => {
+        if (!valid) {
+          return this.$message.error("请修改正确的内容");
+        } else {
+          if (
+            this.row.mobile == this.modifyList.modifyPhone &&
+            this.row.email == this.modifyList.modifyEamil
+          ) {
+            return this.$message.error("没有进行修改,不能提交~");
+          }
+          const { data: res } = await this.$http.put(
+            "users/" + this.modifyList.modifyid,
+            {
+              email: this.modifyList.modifyEamil,
+              mobile: this.modifyList.modifyPhone,
+            }
+          );
+          if (res.meta.status !== 200) {
+            return this.$message.error("用户信息更新失败");
+          }
+          //关闭对话框
+          this.modifyButton = false;
+          this.getUserList();
+          this.$message.success("用户跟新信息成功");
+        }
+      });
     },
     clearFrom() {
       this.$refs.formRef.resetFields();
     },
     //修改数据
-    modify(row){
-      this.modifyButton = true
+    modify(row) {
+      this.row = row;
+      this.modifyButton = true;
       this.modifyList.modifyUser = row.username;
       this.modifyList.modifyEamil = row.email;
       this.modifyList.modifyPhone = row.mobile;
-      
+      this.modifyList.modifyid = row.id;
+    },
+    //删除用户
+    async deleteUser(row) {
+      this.row = row;
+      await this.$confirm("此操作将永久删除该用户, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          const res = this.$http.delete('roles/' + this.row.id)
+          console.log(res);
+          this.$message({
+            type: "success",
+            message: "删除成功!",
+          });
+        })
+        .catch( err => err);
+        if(res == 'confirm') {
+          return this.$message.success('删除成功')
+        }else {
+          return this.$message.error('已取消删除')
+        }
     },
     // 获取时间
     loginTime() {
